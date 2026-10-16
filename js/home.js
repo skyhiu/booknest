@@ -3,7 +3,8 @@
  * - Rak sampul di hero
  * - Book of the Day (berganti setiap hari, tetap sama sepanjang hari itu)
  * - Editor's Picks & Mulai Membaca
- * - Metadata Google Books untuk buku yang tampil (memakai cache)
+ * Metadata Google Books tidak diambil massal di sini; hanya per buku
+ * saat detail dibuka atau saat sampul Open Library tidak tersedia.
  */
 window.BookNest = window.BookNest || {};
 
@@ -86,12 +87,5 @@ window.BookNest = window.BookNest || {};
     renderBookOfTheDay(bookOfDay, today);
     renderGrid("editors-picks", picks);
     renderGrid("starter-books", starters);
-
-    // Ambil metadata hanya untuk buku yang tampil di Home.
-    const visibleIds = new Set([bookOfDay.id, ...picks.map((b) => b.id), ...starters.map((b) => b.id), ...HERO_SHELF_IDS]);
-    const visibleBooks = BN.books.curated.filter((b) => visibleIds.has(b.id));
-    BN.api.enrichCuratedBooks(visibleBooks, { onBook: BN.books.setMetadata }).catch(() => {
-      /* Home tetap berfungsi dengan data kurasi lokal. */
-    });
   });
 })(window.BookNest);

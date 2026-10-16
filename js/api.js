@@ -11,8 +11,12 @@
  * - Setiap field dari API diperiksa dulu (bisa kosong / tidak ada).
  * - URL gambar dipaksa HTTPS; URL selain http/https ditolak.
  * - Teks deskripsi dibersihkan dari tag HTML sebelum ditampilkan.
- * - Tidak ada API key di kode ini. Google Books bisa dipakai tanpa key
- *   untuk data publik, tetapi tetap ada kuota per IP/proyek.
+ * - API key Google Books bersifat opsional dan diatur di js/config.js.
+ *   Tanpa key, request memakai kuota bersama yang bisa cepat habis.
+ * - Hemat kuota: metadata diambil hanya saat dibutuhkan (detail dibuka
+ *   atau sampul Open Library tidak ada), lalu disimpan di cache.
+ * - Setelah Google menolak (HTTP 429 / key ditolak), Google tidak
+ *   dipanggil lagi selama 30 menit.
  */
 window.BookNest = window.BookNest || {};
 
@@ -24,17 +28,71 @@ window.BookNest = window.BookNest || {};
   const OPEN_LIBRARY_COVERS_URL = "https://covers.openlibrary.org/b";
   const REQUEST_TIMEOUT_MS = 10000;
   const SEARCH_LIMIT = 12;
+  const GOOGLE_COOLDOWN_MS = 30 * 60 * 1000; // 30 menit
+  const GOOGLE_EVENT = "booknest:google-unavailable";
+
+  const config = window.BOOKNEST_CONFIG || {};
+  const GOOGLE_API_KEY =
+    typeof config.googleBooksApiKey === "string" ? config.googleBooksApiKey.trim() : "";
 
   class ApiError extends Error {
-    constructor(message, status) {
+    constructor(message, status, reason) {
       super(message);
       this.name = "ApiError";
       this.status = status || null; // kode HTTP, misalnya 429 (kuota habis)
+      this.reason = reason || null; // "quota" | "key" | null
     }
   }
 
   function isAbortError(error) {
     return error && error.name === "AbortError";
+  }
+
+  /* ---------------- Google Books: key & jeda ---------------- */
+
+  function googleUrl(params) {
+    const query = new URLSearchParams(params);
+    if (GOOGLE_API_KEY) query.set("key", GOOGLE_API_KEY);
+    return `${GOOGLE_BOOKS_URL}?${query.toString()}`;
+  }
+
+  function cooldownError(cooldown) {
+    const time = new Date(cooldown.until).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    return cooldown.reason === "key"
+      ? new ApiError(`Google Books menolak API key website ini. Dicoba lagi otomatis setelah pukul ${time}.`, 403, "key")
+      : new ApiError(`Kuota Google Books sedang habis. Dicoba lagi otomatis setelah pukul ${time}.`, 429, "quota");
+  }
+
+  function notifyGoogleUnavailable(cooldown) {
+    window.dispatchEvent(new CustomEvent(GOOGLE_EVENT, { detail: cooldown }));
+  }
+
+  /**
+   * Semua request ke Google lewat fungsi ini:
+   * - jika sedang dalam masa jeda, langsung gagal tanpa request;
+   * - jika Google membalas 429, atau 400/403 saat memakai key, mulai jeda.
+   */
+  async function fetchGoogle(params, signal) {
+    const cooldown = BN.storage.getGoogleCooldown();
+    if (cooldown) throw cooldownError(cooldown);
+
+    try {
+      return await fetchJson(googleUrl(params), signal);
+    } catch (error) {
+      const keyRejected = GOOGLE_API_KEY && (error.status === 400 || error.status === 403);
+      if (error.status === 429 || keyRejected) {
+        const reason = error.status === 429 ? "quota" : "key";
+        BN.storage.setGoogleCooldown(GOOGLE_COOLDOWN_MS, reason);
+        const active = BN.storage.getGoogleCooldown() || { until: Date.now() + GOOGLE_COOLDOWN_MS, reason };
+        notifyGoogleUnavailable(active);
+        throw cooldownError(active);
+      }
+      throw error;
+    }
+  }
+
+  function getGoogleStatus() {
+    return { hasKey: Boolean(GOOGLE_API_KEY), cooldown: BN.storage.getGoogleCooldown() };
   }
 
   /**
@@ -169,10 +227,7 @@ window.BookNest = window.BookNest || {};
   /* ---------------- Pencarian ---------------- */
 
   async function searchGoogleBooks(query, signal) {
-    const url =
-      `${GOOGLE_BOOKS_URL}?q=${encodeURIComponent(query)}` +
-      `&maxResults=${SEARCH_LIMIT}&printType=books`;
-    const data = await fetchJson(url, signal);
+    const data = await fetchGoogle({ q: query, maxResults: String(SEARCH_LIMIT), printType: "books" }, signal);
     // Jika tidak ada hasil, Google Books tidak mengirim field "items".
     const items = Array.isArray(data.items) ? data.items : [];
     return items.map(normalizeGoogleVolume).filter(Boolean);
@@ -238,8 +293,7 @@ window.BookNest = window.BookNest || {};
     queries.push(`intitle:"${book.title}" inauthor:${lastName(book.authors[0])}`);
 
     for (const query of queries) {
-      const url = `${GOOGLE_BOOKS_URL}?q=${encodeURIComponent(query)}&maxResults=1&printType=books`;
-      const data = await fetchJson(url, signal);
+      const data = await fetchGoogle({ q: query, maxResults: "1", printType: "books" }, signal);
       const item = Array.isArray(data.items) ? data.items[0] : null;
       const volume = item ? normalizeGoogleVolume(item) : null;
       if (volume) {
@@ -258,61 +312,6 @@ window.BookNest = window.BookNest || {};
     return null;
   }
 
-  /**
-   * Memperkaya banyak buku kurasi secara efisien:
-   * - pakai cache localStorage dulu (tanpa request),
-   * - sisanya diambil paralel terbatas (maksimal 3 request sekaligus),
-   * - berhenti lebih awal jika kuota habis (HTTP 429) atau jaringan
-   *   gagal 3 kali berturut-turut, agar tidak membanjiri server.
-   */
-  async function enrichCuratedBooks(books, { onBook, onProgress, concurrency = 3 } = {}) {
-    const state = { total: books.length, done: 0, fromCache: 0, found: 0, failed: 0, stopped: false, lastError: null };
-    const queue = [];
-    let consecutiveFailures = 0;
-
-    books.forEach((book) => {
-      const cached = BN.storage.getCachedMetadata(book.id);
-      if (cached === undefined) {
-        queue.push(book);
-        return;
-      }
-      state.done += 1;
-      state.fromCache += 1;
-      if (cached) {
-        state.found += 1;
-        if (onBook) onBook(book.id, cached);
-      }
-    });
-    if (onProgress) onProgress({ ...state });
-
-    async function worker() {
-      while (queue.length && !state.stopped) {
-        const book = queue.shift();
-        try {
-          const meta = await fetchCuratedMetadata(book);
-          BN.storage.setCachedMetadata(book.id, meta);
-          consecutiveFailures = 0;
-          if (meta) {
-            state.found += 1;
-            if (onBook) onBook(book.id, meta);
-          }
-        } catch (error) {
-          state.failed += 1;
-          state.lastError = error;
-          consecutiveFailures += 1;
-          if (error.status === 429 || consecutiveFailures >= 3) state.stopped = true;
-        }
-        state.done += 1;
-        if (onProgress) onProgress({ ...state });
-      }
-    }
-
-    const workers = Array.from({ length: Math.min(concurrency, queue.length) }, worker);
-    await Promise.all(workers);
-    state.skipped = queue.length; // buku yang tidak sempat diambil karena dihentikan
-    return state;
-  }
-
   /** URL sampul Open Library berdasarkan ISBN. default=false → 404 jika tidak ada. */
   function openLibraryCoverByIsbn(isbn, size) {
     if (!/^\d{10}(\d{3})?$/.test(String(isbn || ""))) return null;
@@ -324,8 +323,9 @@ window.BookNest = window.BookNest || {};
     isAbortError,
     searchBooks,
     fetchCuratedMetadata,
-    enrichCuratedBooks,
     openLibraryCoverByIsbn,
+    getGoogleStatus,
+    GOOGLE_EVENT,
     toHttps, // diekspor untuk pengujian
   };
 })(window.BookNest);

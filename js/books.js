@@ -22,8 +22,15 @@ window.BookNest = window.BookNest || {};
   const curatedById = new Map(curatedBooks.map((b) => [b.id, b]));
 
   const metadataById = new Map(); // metadata Google Books untuk buku kurasi
-  const metadataStatus = new Map(); // "loading" | "error" untuk modal
+  const metadataStatus = new Map(); // "loading" | { error: pesan } untuk modal
   const externalById = new Map(); // hasil pencarian API (belum dikurasi)
+  const pendingMetadata = new Map(); // request metadata yang sedang berjalan (anti-duplikat)
+
+  // Metadata yang sudah ada di cache langsung dipakai, tanpa request jaringan.
+  curatedBooks.forEach((book) => {
+    const cached = BN.storage.getCachedMetadata(book.id);
+    if (cached) metadataById.set(book.id, cached);
+  });
 
   /* ---------------- Helper DOM ---------------- */
 
@@ -175,6 +182,12 @@ window.BookNest = window.BookNest || {};
       if (index >= sources.length) {
         frame.dataset.state = "fallback";
         frame.replaceChildren(createFallbackCover(book, decorative));
+        // Open Library tidak punya sampul → coba ambil thumbnail Google untuk buku ini saja.
+        if (book.source === "curated" && !metadataById.has(book.id)) {
+          requestMetadata(book).catch(() => {
+            /* tetap memakai sampul pengganti */
+          });
+        }
         return;
       }
       frame.dataset.state = "loading";
@@ -394,11 +407,18 @@ window.BookNest = window.BookNest || {};
       return;
     }
 
-    if (isCurated && metadataStatus.get(book.id) === "error") {
+    const status = metadataStatus.get(book.id);
+    if (isCurated && status && status.error) {
       const retry = el("button", { className: "btn btn--quiet btn--small", attrs: { type: "button" } }, [BN.icon("refresh"), "Coba lagi"]);
-      retry.addEventListener("click", () => loadMetadataForDetail(book, true));
+      retry.addEventListener("click", () => {
+        BN.storage.clearGoogleCooldown(); // pengguna sengaja meminta coba lagi
+        loadMetadataForDetail(book, true);
+      });
       box.append(
-        el("p", { className: "state-inline state-inline--error" }, [BN.icon("alert"), "Deskripsi belum bisa dimuat karena Google Books tidak dapat dihubungi."]),
+        el("p", { className: "state-inline state-inline--error" }, [
+          BN.icon("alert"),
+          `Deskripsi belum bisa dimuat. ${status.error} Ringkasan dan alasan di atas tetap dari kurasi BookNest.`,
+        ]),
         retry
       );
       return;
@@ -427,28 +447,49 @@ window.BookNest = window.BookNest || {};
     box.append(el("p", { className: "source-note", text: `Teks dari ${sourceName}; bisa berbahasa Inggris dan merujuk ke edisi tertentu.` }));
   }
 
-  /** Mengambil metadata satu buku hanya ketika detailnya dibuka (lazy). */
-  async function loadMetadataForDetail(book, force) {
-    if (book.source !== "curated" || metadataById.has(book.id)) return;
+  /**
+   * Mengambil metadata Google Books untuk SATU buku kurasi.
+   * Urutan: memori → cache localStorage → request jaringan.
+   * Request yang sama tidak pernah dikirim dua kali bersamaan.
+   * @returns {Promise<object|null>}
+   */
+  function requestMetadata(book, force) {
+    if (metadataById.has(book.id)) return Promise.resolve(metadataById.get(book.id));
+
     const cached = BN.storage.getCachedMetadata(book.id);
     if (cached !== undefined && !force) {
       if (cached) setMetadata(book.id, cached);
-      return;
+      return Promise.resolve(cached);
     }
-    if (metadataStatus.get(book.id) === "loading") return;
+    if (pendingMetadata.has(book.id)) return pendingMetadata.get(book.id);
+
+    const request = BN.api
+      .fetchCuratedMetadata(book)
+      .then((meta) => {
+        BN.storage.setCachedMetadata(book.id, meta); // null juga disimpan: "tidak ditemukan"
+        if (meta) setMetadata(book.id, meta);
+        return meta;
+      })
+      .finally(() => pendingMetadata.delete(book.id));
+
+    pendingMetadata.set(book.id, request);
+    return request;
+  }
+
+  /** Dipanggil saat detail dibuka: menampilkan status memuat / error di modal. */
+  async function loadMetadataForDetail(book, force) {
+    if (book.source !== "curated" || metadataById.has(book.id)) return;
+    if (!force && BN.storage.getCachedMetadata(book.id) === null) return; // sudah dicari, tidak ada
 
     metadataStatus.set(book.id, "loading");
-    renderDescription(book);
+    if (modal.currentId === book.id) renderDescription(book);
     try {
-      const meta = await BN.api.fetchCuratedMetadata(book);
-      BN.storage.setCachedMetadata(book.id, meta);
+      await requestMetadata(book, force);
       metadataStatus.delete(book.id);
-      if (meta) setMetadata(book.id, meta);
-      else if (modal.currentId === book.id) renderDescription(book);
     } catch (error) {
-      metadataStatus.set(book.id, "error");
-      if (modal.currentId === book.id) renderDescription(book);
+      metadataStatus.set(book.id, { error: error.message });
     }
+    if (modal.currentId === book.id) renderDescription(book);
   }
 
   function createExternalLink(href, label) {
@@ -625,6 +666,7 @@ window.BookNest = window.BookNest || {};
     getLevel,
     getMetadata,
     setMetadata,
+    requestMetadata,
     registerExternalBooks,
     formatAuthors,
     truncate,

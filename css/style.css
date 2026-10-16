@@ -1864,17 +1864,7 @@ main:focus {
   font-weight: 700;
 }
 
-.sync-status {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font-size: var(--text-sm);
-  color: var(--color-muted);
-}
 
-.sync-status[data-state="done"] .icon {
-  color: var(--color-primary);
-}
 
 .catalog-heading {
   font-size: var(--text-2xl);

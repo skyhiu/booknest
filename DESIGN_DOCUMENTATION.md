@@ -92,10 +92,12 @@ Header, tombol, kartu, dan warna kategori sama di ketiga halaman. Tombol bookmar
 ### Cara data diproses
 
 1. **Data kurasi lebih dulu.** Katalog langsung ditampilkan dari `data/books.js`, jadi pengguna tidak menunggu API sebelum melihat buku.
-2. **Metadata buku kurasi.** Untuk setiap buku, aplikasi lebih dulu memeriksa cache `localStorage` (berlaku 7 hari). Jika belum ada, aplikasi memanggil Google Books dengan `q=isbn:{ISBN}`. Jika tidak ditemukan, pencarian diulang dengan `intitle:"{judul}" inauthor:{nama belakang penulis}`. Paling banyak 3 request berjalan bersamaan.
-3. **Pencarian online.** Pencarian berjalan saat kata kunci minimal 3 huruf, setelah jeda 600 ms (debounce). Request lama dibatalkan dengan `AbortController`. Hasil per kata kunci disimpan di memori agar tidak diminta ulang.
-4. **Normalisasi.** `normalizeGoogleVolume()` dan `normalizeOpenLibraryDoc()` mengubah respons kedua layanan menjadi bentuk objek yang sama: `{ id, source, title, authors, description, categories, publishedDate, publisher, pageCount, cover, link }`.
-5. **Keamanan.**
+2. **Metadata buku kurasi, hanya saat dibutuhkan.** Metadata tidak diambil massal untuk 25 buku. Aplikasi hanya memintanya untuk **satu buku** ketika detail buku dibuka, atau ketika sampul dari Open Library tidak tersedia. Urutannya: memori, lalu cache `localStorage` (berlaku 7 hari), lalu Google Books dengan `q=isbn:{ISBN}`, dan jika tidak ditemukan, `intitle:"{judul}" inauthor:{nama belakang penulis}`. Permintaan ganda untuk buku yang sama digabung menjadi satu.
+3. **API key opsional.** Jika `js/config.js` berisi key, key ditambahkan ke setiap request Google Books. Key dibatasi ke domain website dan ke Books API di Google Cloud Console.
+4. **Jeda otomatis.** Jika Google membalas HTTP 429 (kuota habis), atau 400/403 saat memakai key (key ditolak), Google tidak dipanggil lagi selama 30 menit. Selama jeda, detail buku memakai data kurasi, pencarian online memakai Open Library, dan halaman Explore menampilkan pemberitahuan dengan tombol **Coba lagi sekarang** (satu request uji).
+5. **Pencarian online.** Pencarian berjalan saat kata kunci minimal 3 huruf, setelah jeda 600 ms (debounce). Request lama dibatalkan dengan `AbortController`. Hasil per kata kunci disimpan di memori agar tidak diminta ulang.
+6. **Normalisasi.** `normalizeGoogleVolume()` dan `normalizeOpenLibraryDoc()` mengubah respons kedua layanan menjadi bentuk objek yang sama: `{ id, source, title, authors, description, categories, publishedDate, publisher, pageCount, cover, link }`.
+7. **Keamanan.**
    - Query selalu dikodekan dengan `encodeURIComponent()`.
    - Deskripsi yang berisi tag HTML dibersihkan dengan `DOMParser` lalu diambil `textContent`-nya. `DOMParser` tidak menjalankan skrip.
    - Semua teks dari API dimasukkan ke halaman dengan `textContent`, tidak pernah dengan `innerHTML`.
@@ -120,12 +122,13 @@ Header, tombol, kartu, dan warna kategori sama di ketiga halaman. Tombol bookmar
 |---|---|
 | Sampul | Open Library (ISBN) → thumbnail Google Books → sampul pengganti lokal |
 | Pencarian | Google Books → Open Library → pesan error dengan tombol **Coba lagi** |
-| Metadata | Cache → Google Books (ISBN) → Google Books (judul dan penulis) → data kurasi lokal, ditambah banner error dengan tombol **Coba lagi** |
+| Metadata | Memori → cache → Google Books (ISBN) → Google Books (judul dan penulis) → data kurasi lokal. Saat kuota habis atau key ditolak: jeda 30 menit, pemberitahuan, dan tombol **Coba lagi sekarang** |
 | Tanpa internet | Seluruh katalog, filter, modal, dan bookmark tetap berfungsi dari `data/books.js` |
 
 ### Batasan dan atribusi
 
-- Google Books dipakai **tanpa API key** sehingga bergantung pada kuota bersama per IP. Jika server membalas HTTP 429, aplikasi berhenti meminta data. Jika terjadi 3 kegagalan jaringan berturut-turut, aplikasi juga berhenti agar tidak membanjiri server.
+- **Hasil uji API asli setelah website online:** Google Books **tanpa key** membalas HTTP 429 (kuota habis), sehingga data edisi dimuat untuk 0 dari 25 buku. Fallback berjalan sesuai rancangan, dan karena browser bisa membaca kode 429, CORS dipastikan tidak memblokir request. Sebagai tindak lanjut, ditambahkan API key opsional (dibatasi ke domain dan Books API) serta pengambilan metadata per buku dengan jeda otomatis.
+- API key frontend selalu terlihat publik. Perlindungannya berasal dari pembatasan domain dan API di Google Cloud Console, bukan dari menyembunyikan key.
 - Urutan hasil pencarian berasal dari relevansi Google Books, **bukan** popularitas. Hal ini juga dijelaskan di antarmuka.
 - ISBN di data kurasi merujuk ke satu edisi buku, sehingga data edisi dari API bisa berbeda dengan edisi yang dimiliki pengguna.
 - Data API selalu diberi label sumbernya, seperti “Data edisi dari Google Books” dan “Deskripsi dari Google Books”. Footer dan halaman About mencantumkan atribusi ke Google Books dan Open Library.
@@ -137,7 +140,7 @@ Header, tombol, kartu, dan warna kategori sama di ketiga halaman. Tombol bookmar
 ### Kelebihan
 
 - **Tahan gangguan.** Website tetap berguna saat API gagal, kuota habis, gambar gagal dimuat, atau `localStorage` diblokir.
-- **Hemat request.** Ada cache, debounce, pembatasan paralel, dan penghentian otomatis. Mengganti filter tidak memicu request jaringan.
+- **Hemat request.** Metadata hanya diambil per buku saat dibutuhkan, ada cache 7 hari, debounce pencarian, dan jeda 30 menit setelah kuota habis. Mengganti filter tidak memicu request jaringan.
 - **Aksesibel.** HTML semantik, skip link, label pada semua input, fokus yang terlihat, modal dengan fokus terkunci, dan dukungan `prefers-reduced-motion`.
 - **Jujur.** Tidak ada rating, angka penjualan, atau statistik buatan. Data kurasi dan data API dibedakan dengan jelas.
 - **Mudah dikembangkan.** Menambah buku cukup dengan menambah satu objek di `data/books.js`, dan jumlah buku di semua halaman ikut diperbarui.
@@ -147,7 +150,8 @@ Header, tombol, kartu, dan warna kategori sama di ketiga halaman. Tombol bookmar
 Pengujian berikut bersifat **teknis** dan dijalankan di Chromium headless (Playwright).
 
 - **Uji fungsional: 59/59 lulus.** Mencakup navigasi, pencarian, filter, sorting, modal, bookmark, deep link, cache, debounce, dan keamanan XSS.
-- **Uji kondisi gagal: 16/16 lulus.** Mencakup HTTP 500, HTTP 429, kondisi offline, tombol coba lagi, `localStorage` diblokir, dan sampul gagal dimuat.
+- **Uji kondisi gagal: 21/21 lulus.** Mencakup HTTP 500, HTTP 429 dengan jeda otomatis (0 request selama jeda, tepat 1 request saat coba lagi), pemulihan setelah Google kembali normal, kondisi offline, `localStorage` diblokir, dan sampul gagal dimuat.
+- **Uji API key: 9/9 lulus.** Key terkirim di setiap request Google, key yang ditolak memunculkan pemberitahuan yang tepat, dan tanpa key tidak ada parameter key yang terkirim.
 - **Uji keyboard dan reduced motion: 8/8 lulus.**
 - **Validasi HTML (html-validate):** tanpa error.
 - **Audit aksesibilitas (axe-core, aturan WCAG 2.1 AA dan best practice):** 0 pelanggaran di lebar 1280 px dan 375 px.

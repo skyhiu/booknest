@@ -6,6 +6,8 @@
  *    Mengganti filter tidak memicu request jaringan sama sekali.
  * 2. Hasil tambahan dari API → hanya saat kata kunci ≥ 3 huruf,
  *    dengan debounce 600 ms dan pembatalan request lama.
+ * Metadata Google Books tidak diambil massal; hanya per buku saat
+ * detail dibuka atau sampul Open Library tidak tersedia.
  */
 window.BookNest = window.BookNest || {};
 
@@ -289,47 +291,53 @@ window.BookNest = window.BookNest || {};
     debounce("api", () => runApiSearch(query, false), API_DEBOUNCE_MS);
   }
 
-  /* ---------------- Sinkronisasi metadata kurasi ---------------- */
+  /* ---------------- Status Google Books ---------------- */
 
-  function setSyncStatus(type, message) {
-    els.sync.dataset.state = type;
-    const iconName = type === "done" ? "check" : type === "partial" ? "info" : null;
-    const prefix = type === "loading"
-      ? el("span", { className: "spinner", attrs: { "aria-hidden": "true" } })
-      : iconName ? BN.icon(iconName) : null;
-    els.sync.replaceChildren(...[prefix, message].filter(Boolean));
+  function formatTime(ms) {
+    return new Date(ms).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
   }
 
-  async function runEnrichment() {
+  /**
+   * Pemberitahuan saat Google Books tidak tersedia.
+   * reason: "quota" (HTTP 429), "key" (API key ditolak), "network" (tidak terhubung).
+   */
+  function showGoogleNotice(info) {
+    const titles = {
+      quota: "Kuota Google Books sedang habis",
+      key: "Google Books menolak API key website ini",
+      network: "Google Books tidak dapat dihubungi",
+    };
+    const keyHint = info.reason === "key"
+      ? "Pemilik website perlu memeriksa pembatasan API key di Google Cloud Console. "
+      : "";
+    const retryHint = info.until ? ` BookNest mencoba lagi otomatis setelah pukul ${formatTime(info.until)}.` : "";
+
+    els.syncErrorTitle.textContent = titles[info.reason] || titles.network;
+    els.syncErrorText.textContent =
+      keyHint +
+      "Deskripsi dan data edisi dari Google Books belum tersedia, tetapi katalog, ringkasan, dan alasan rekomendasi tetap tampil dari kurasi BookNest. Pencarian online memakai Open Library." +
+      retryHint;
+    els.syncError.hidden = false;
+  }
+
+  /** "Coba lagi sekarang": hapus jeda, lalu uji dengan SATU request saja. */
+  async function retryGoogle() {
+    BN.storage.clearGoogleCooldown();
     els.syncError.hidden = true;
-    const pending = BN.books.curated.filter((book) => !BN.books.getMetadata(book.id));
-    const total = BN.books.curated.length;
+    els.syncRetry.disabled = true;
 
-    setSyncStatus("loading", "Mengambil data edisi dari Google Books…");
-    const result = await BN.api.enrichCuratedBooks(pending, {
-      onBook: BN.books.setMetadata,
-      onProgress: (progress) => {
-        if (progress.done < progress.total) {
-          setSyncStatus("loading", `Mengambil data edisi dari Google Books… (${progress.done}/${progress.total})`);
-        }
-      },
-    });
-
-    const found = BN.books.curated.filter((book) => BN.books.getMetadata(book.id)).length;
-
-    if (result.failed > 0 || result.stopped) {
-      const reason = result.lastError && result.lastError.status === 429
-        ? "Kuota Google Books untuk sementara habis."
-        : "Google Books tidak dapat dihubungi.";
-      els.syncErrorTitle.textContent = found === 0 ? "Data dari Google Books gagal dimuat" : "Sebagian data dari Google Books gagal dimuat";
-      els.syncErrorText.textContent = `${reason} Data edisi dimuat untuk ${found} dari ${total} buku; sisanya memakai data kurasi lokal.`;
-      els.syncError.hidden = false;
-      setSyncStatus("partial", `Data edisi Google Books: ${found}/${total} buku.`);
-      return;
+    const probe = BN.books.curated.find(
+      (book) => !BN.books.getMetadata(book.id) && BN.storage.getCachedMetadata(book.id) === undefined
+    );
+    try {
+      if (probe) await BN.books.requestMetadata(probe, true);
+      BN.announce("Google Books dapat dihubungi kembali.");
+    } catch (error) {
+      // Kuota/key: pemberitahuan sudah muncul lewat event. Selain itu tampilkan di sini.
+      if (!BN.storage.getGoogleCooldown()) showGoogleNotice({ reason: "network" });
+    } finally {
+      els.syncRetry.disabled = false;
     }
-
-    if (found === total) setSyncStatus("done", `Data edisi Google Books dimuat untuk semua ${total} buku.`);
-    else setSyncStatus("partial", `Data edisi Google Books dimuat untuk ${found} dari ${total} buku. Sisanya tidak ditemukan di Google Books dan tetap memakai data kurasi.`);
   }
 
   /* ---------------- Rak simpanan ---------------- */
@@ -425,7 +433,8 @@ window.BookNest = window.BookNest || {};
     });
     els.reset.addEventListener("click", resetFilters);
     els.emptyReset.addEventListener("click", resetFilters);
-    els.syncRetry.addEventListener("click", runEnrichment);
+    els.syncRetry.addEventListener("click", retryGoogle);
+    window.addEventListener(BN.api.GOOGLE_EVENT, (event) => showGoogleNotice(event.detail));
 
     window.addEventListener(BN.storage.BOOKMARK_EVENT, renderSavedShelf);
     window.addEventListener("hashchange", openShelfFromHash);
@@ -454,7 +463,6 @@ window.BookNest = window.BookNest || {};
       apiTitle: document.getElementById("api-results-title"),
       apiSource: document.getElementById("api-results-source"),
       apiBody: document.getElementById("api-results-body"),
-      sync: document.getElementById("sync-status"),
       syncError: document.getElementById("sync-error"),
       syncErrorTitle: document.getElementById("sync-error-title"),
       syncErrorText: document.getElementById("sync-error-text"),
@@ -476,7 +484,9 @@ window.BookNest = window.BookNest || {};
     renderSavedShelf();
     openShelfFromHash();
     scheduleApiSearch();
-    runEnrichment();
+
+    const googleStatus = BN.api.getGoogleStatus();
+    if (googleStatus.cooldown) showGoogleNotice(googleStatus.cooldown);
 
     if (bookFromUrl && !BN.books.openBookDetail(bookFromUrl)) writeStateToUrl();
   });

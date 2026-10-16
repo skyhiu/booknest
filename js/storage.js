@@ -17,6 +17,7 @@ window.BookNest = window.BookNest || {};
   const KEYS = {
     bookmarks: "booknest:bookmarks:v1",
     metadata: "booknest:metadata-cache:v1",
+    googleCooldown: "booknest:google-cooldown:v1",
   };
   const METADATA_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 hari
   const BOOKMARK_EVENT = "booknest:bookmarks-changed";
@@ -132,6 +133,32 @@ window.BookNest = window.BookNest || {};
     writeJson(KEYS.metadata, cache);
   }
 
+  /* ---------------- Jeda Google Books ---------------- */
+
+  /**
+   * Setelah Google Books menolak request (kuota habis / key ditolak),
+   * BookNest berhenti memanggil Google selama beberapa saat agar tidak
+   * menghabiskan kuota dengan request yang pasti gagal.
+   * Ini hanya pengaman teknis; tidak memengaruhi pilihan buku.
+   */
+  function getGoogleCooldown() {
+    const entry = readJson(KEYS.googleCooldown, null);
+    if (!entry || typeof entry.until !== "number" || entry.until <= Date.now()) return null;
+    return { until: entry.until, reason: entry.reason === "key" ? "key" : "quota" };
+  }
+
+  function setGoogleCooldown(durationMs, reason) {
+    writeJson(KEYS.googleCooldown, { until: Date.now() + durationMs, reason });
+  }
+
+  function clearGoogleCooldown() {
+    try {
+      window.localStorage.removeItem(KEYS.googleCooldown);
+    } catch (error) {
+      /* penyimpanan tidak tersedia: tidak ada yang perlu dihapus */
+    }
+  }
+
   BN.storage = {
     BOOKMARK_EVENT,
     getBookmarks,
@@ -140,5 +167,8 @@ window.BookNest = window.BookNest || {};
     removeBookmark,
     getCachedMetadata,
     setCachedMetadata,
+    getGoogleCooldown,
+    setGoogleCooldown,
+    clearGoogleCooldown,
   };
 })(window.BookNest);
