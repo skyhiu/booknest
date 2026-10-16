@@ -18,5 +18,5 @@
  *   Website tetap berfungsi dengan data kurasi lokal jika Google Books gagal.
  */
 window.BOOKNEST_CONFIG = {
-  googleBooksApiKey: "",
+  googleBooksApiKey: "AIzaSyCLx9DpKpjsTZRfnJJ-fpoJtNG7KTqZg2o",
 };
