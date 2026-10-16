@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Explore Books | BookNest</title>
+    <meta name="description" content="Cari, saring, dan jelajahi rekomendasi buku BookNest berdasarkan kategori dan tingkat pembaca, plus hasil tambahan dari Google Books.">
+    <meta name="theme-color" content="#1e4a3f">
+    <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&amp;display=swap">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <script src="data/books.js" defer></script>
+    <script src="js/icons.js" defer></script>
+    <script src="js/storage.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <script src="js/books.js" defer></script>
+    <script src="js/main.js" defer></script>
+    <script src="js/explore.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Langsung ke konten utama</a>
+
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="logo" href="index.html">
+          <svg class="logo__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M16 9.5c-2-1.6-4.8-2.1-8.5-2.1v12c3.7 0 6.5.5 8.5 2.1 2-1.6 4.8-2.1 8.5-2.1v-12c-3.7 0-6.5.5-8.5 2.1Z"/><path d="M16 9.5v12"/><path class="logo__nest" d="M5 24.5c3.5 3 18.5 3 22 0"/></svg>
+          <span>BookNest</span>
+        </a>
+
+        <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>
+          Menu
+        </button>
+
+        <nav id="site-nav" class="site-nav" aria-label="Navigasi utama">
+          <ul class="site-nav__list">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="explore.html" aria-current="page">Explore Books</a></li>
+          </ul>
+          <a class="saved-link" href="explore.html#saved">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4v-17Z"/></svg>
+            Tersimpan
+            <span class="saved-link__count" data-saved-count>0</span>
+            <span class="sr-only">buku</span>
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <section class="page-head" aria-labelledby="page-title">
+        <div class="container">
+          <h1 id="page-title">Explore Books</h1>
+          <p class="page-head__lead">
+            Cari judul atau penulis, saring berdasarkan kategori dan tingkat pembaca, lalu buka detail untuk membaca alasan rekomendasinya.
+          </p>
+        </div>
+      </section>
+
+      <div class="container">
+        <noscript>
+          <p class="notice notice--error">BookNest membutuhkan JavaScript untuk menampilkan katalog buku. Aktifkan JavaScript di browser, lalu muat ulang halaman.</p>
+        </noscript>
+
+        <details id="saved" class="saved-shelf">
+          <summary id="saved-summary">
+            <svg class="icon icon--filled" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4v-17Z"/></svg>
+            <span>Rak Simpanan (<span id="saved-shelf-count">0</span>)</span>
+          </summary>
+          <div class="saved-shelf__body">
+            <p class="source-note">
+              Simpanan disimpan di browser ini saja (localStorage). Belum disinkronkan ke perangkat atau pengguna lain,
+              dan akan hilang jika data browser dihapus.
+            </p>
+            <p id="saved-empty" class="muted">Belum ada buku tersimpan. Tekan tombol bookmark pada kartu buku untuk menyimpannya di sini.</p>
+            <ul id="saved-list" class="saved-list"></ul>
+          </div>
+        </details>
+
+        <section class="filters" aria-labelledby="filters-heading">
+          <h2 id="filters-heading" class="sr-only">Cari dan saring buku</h2>
+
+          <form id="search-form" class="search" role="search">
+            <label for="search-input" class="field-label">Cari judul, penulis, atau genre</label>
+            <div class="search__field">
+              <div class="search__input-wrap">
+                <svg class="icon search__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10.5 18a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15Z"/><path d="m16 16 5 5"/></svg>
+                <input id="search-input" class="input input--search" type="search" name="q"
+                       placeholder="Contoh: Orwell, misteri, manga" autocomplete="off" maxlength="100"
+                       aria-describedby="search-hint">
+              </div>
+              <button class="btn btn--primary" type="submit">Cari</button>
+            </div>
+            <p id="search-hint" class="field-hint">Koleksi kurasi tersaring langsung saat kamu mengetik. Ketik minimal 3 huruf untuk melihat hasil tambahan dari Google Books.</p>
+          </form>
+
+          <fieldset class="filter-group">
+            <legend class="field-label">Kategori</legend>
+            <div id="category-options" class="chip-row"></div>
+          </fieldset>
+
+          <div class="filter-row">
+            <div>
+              <label for="level-select" class="field-label">Tingkat pembaca</label>
+              <select id="level-select" class="select"></select>
+            </div>
+            <div>
+              <label for="sort-select" class="field-label">Urutkan</label>
+              <select id="sort-select" class="select">
+                <option value="recommended">Rekomendasi editor</option>
+                <option value="title">Judul A–Z</option>
+                <option value="newest">Terbit pertama, terbaru dulu</option>
+              </select>
+            </div>
+            <button id="reset-filters" class="btn btn--quiet" type="button">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 4v6h6"/><path d="M4.5 15a8 8 0 1 0 1.7-8.3L4 10"/></svg>
+              Reset filter
+            </button>
+          </div>
+        </section>
+
+        <section class="explore-section" aria-labelledby="catalog-heading">
+          <div class="results-bar">
+            <div>
+              <h2 id="catalog-heading" class="catalog-heading">Koleksi kurasi BookNest</h2>
+              <p id="result-count" class="result-count" role="status" aria-live="polite"></p>
+            </div>
+            <p id="sync-status" class="sync-status" aria-live="polite"></p>
+          </div>
+
+          <div id="sync-error" class="notice notice--error" role="alert" hidden>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4"/><path d="M12 17.2v.1"/></svg>
+            <div>
+              <p id="sync-error-title" class="notice__title">Sebagian data dari API gagal dimuat</p>
+              <p id="sync-error-text"></p>
+            </div>
+            <button id="sync-retry" class="btn btn--quiet btn--small" type="button">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 11a8 8 0 1 0-2.3 5.6"/><path d="M20 4v7h-7"/></svg>
+              Coba lagi
+            </button>
+          </div>
+
+          <div id="book-grid" class="book-grid"></div>
+
+          <div id="empty-state" class="state-panel" hidden>
+            <svg class="icon state-panel__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10.5 18a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15Z"/><path d="m16 16 5 5"/></svg>
+            <h3 class="state-panel__title">Belum ada buku yang cocok</h3>
+            <p id="empty-text"></p>
+            <p class="muted">Atau coba salah satu kata kunci ini:</p>
+            <div id="empty-suggestions" class="chip-row"></div>
+            <button id="empty-reset" class="btn btn--primary" type="button">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 4v6h6"/><path d="M4.5 15a8 8 0 1 0 1.7-8.3L4 10"/></svg>
+              Reset semua filter
+            </button>
+          </div>
+        </section>
+
+        <section id="api-results" class="api-results" aria-labelledby="api-results-title" hidden>
+          <div class="section-head section-head--compact">
+            <h2 id="api-results-title">Hasil tambahan dari Google Books</h2>
+            <p class="muted">Hasil ini diambil langsung dari API dan belum ditinjau editor, jadi belum ada alasan rekomendasi dan tingkat pembaca. Filter kategori dan tingkat hanya berlaku untuk koleksi kurasi di atas.</p>
+            <p id="api-results-source" class="source-note" aria-live="polite"></p>
+          </div>
+          <div id="api-results-body"></div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container site-footer__inner">
+        <div>
+          <a class="logo" href="index.html">
+            <svg class="logo__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M16 9.5c-2-1.6-4.8-2.1-8.5-2.1v12c3.7 0 6.5.5 8.5 2.1 2-1.6 4.8-2.1 8.5-2.1v-12c-3.7 0-6.5.5-8.5 2.1Z"/><path d="M16 9.5v12"/><path class="logo__nest" d="M5 24.5c3.5 3 18.5 3 22 0"/></svg>
+            <span>BookNest</span>
+          </a>
+          <p class="site-footer__tagline">Rekomendasi buku hasil kurasi editorial untuk pelajar, mahasiswa, dan pembaca pemula.</p>
+        </div>
+
+        <nav aria-label="Navigasi footer">
+          <h2 class="footer-heading">Halaman</h2>
+          <ul class="footer-list">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="explore.html">Explore Books</a></li>
+            <li><a href="explore.html#saved">Rak Simpanan</a></li>
+          </ul>
+        </nav>
+
+        <div>
+          <h2 class="footer-heading">Sumber data</h2>
+          <ul class="footer-list">
+            <li><a href="https://books.google.com/" rel="noopener">Google Books</a>: metadata &amp; deskripsi</li>
+            <li><a href="https://openlibrary.org/" rel="noopener">Open Library</a>: sampul &amp; pencarian cadangan</li>
+            <li><a href="about.html#sumber-data">Cara BookNest memakai API</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="container site-footer__bottom">
+        <p>&copy; <span data-current-year>2026</span> BookNest, proyek pembelajaran web design. Sampul dan deskripsi buku adalah milik penerbit dan pemegang hak masing-masing. Rekomendasi bersifat kurasi editorial, bukan peringkat universal.</p>
+      </div>
+    </footer>
+
+    <button class="btn btn--primary back-to-top" type="button" data-back-to-top hidden>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>
+      <span class="back-to-top__label">Kembali ke atas</span>
+    </button>
+  </body>
+</html>

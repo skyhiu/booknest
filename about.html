@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tentang BookNest | Cara kami memilih buku</title>
+    <meta name="description" content="Tujuan, target pengguna, metode kurasi, dan sumber data BookNest, website rekomendasi buku untuk pelajar dan pembaca pemula.">
+    <meta name="theme-color" content="#1e4a3f">
+    <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&amp;display=swap">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <script src="data/books.js" defer></script>
+    <script src="js/icons.js" defer></script>
+    <script src="js/storage.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <script src="js/books.js" defer></script>
+    <script src="js/main.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Langsung ke konten utama</a>
+
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="logo" href="index.html">
+          <svg class="logo__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M16 9.5c-2-1.6-4.8-2.1-8.5-2.1v12c3.7 0 6.5.5 8.5 2.1 2-1.6 4.8-2.1 8.5-2.1v-12c-3.7 0-6.5.5-8.5 2.1Z"/><path d="M16 9.5v12"/><path class="logo__nest" d="M5 24.5c3.5 3 18.5 3 22 0"/></svg>
+          <span>BookNest</span>
+        </a>
+
+        <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>
+          Menu
+        </button>
+
+        <nav id="site-nav" class="site-nav" aria-label="Navigasi utama">
+          <ul class="site-nav__list">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html" aria-current="page">About</a></li>
+            <li><a href="explore.html">Explore Books</a></li>
+          </ul>
+          <a class="saved-link" href="explore.html#saved">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4v-17Z"/></svg>
+            Tersimpan
+            <span class="saved-link__count" data-saved-count>0</span>
+            <span class="sr-only">buku</span>
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <section class="page-head" aria-labelledby="page-title">
+        <div class="container about-intro">
+          <div class="prose">
+            <h1 id="page-title">Tentang BookNest</h1>
+            <p class="page-head__lead">
+              BookNest adalah website rekomendasi buku yang membantu kamu menemukan bacaan sesuai minat, pengalaman membaca,
+              dan tujuan belajar, tanpa harus mencari satu per satu di toko atau perpustakaan.
+            </p>
+            <p>
+              BookNest dibuat sebagai proyek pembelajaran web design. Koleksinya kecil dan dipilih dengan sengaja:
+              <span data-count-category="all">25</span> buku dalam empat kategori, masing-masing dengan ringkasan,
+              alasan rekomendasi, dan tingkat pembaca.
+            </p>
+          </div>
+
+          <div class="about-panel">
+            <h2>Yang dilakukan BookNest</h2>
+            <ul class="check-list">
+              <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Memilih buku dan menulis alasan rekomendasinya sendiri</span></li>
+              <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Memberi label tingkat pembaca untuk setiap buku kurasi</span></li>
+              <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Menampilkan data edisi dari Google Books dan Open Library</span></li>
+            </ul>
+            <h2>Yang tidak dilakukan</h2>
+            <ul class="cross-list">
+              <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg><span>Membuat peringkat “buku terbaik” untuk semua orang</span></li>
+              <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg><span>Menampilkan rating atau angka penjualan buatan</span></li>
+              <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg><span>Menjual buku atau meminta akun dan login</span></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <div class="container">
+        <section class="section" aria-labelledby="goals-heading">
+          <div class="prose">
+            <h2 id="goals-heading" class="catalog-heading">Tujuan website</h2>
+            <ul>
+              <li>Membantu kamu menemukan buku yang layak dibaca tanpa harus mencari satu per satu.</li>
+              <li>Memperkenalkan buku yang melatih pemikiran kritis, literasi, pengetahuan umum, dan pengembangan diri.</li>
+              <li>Merekomendasikan novel populer, misteri, fantasi, fiksi ilmiah, serta komik dan manga.</li>
+              <li>Membantu pembaca pemula memilih buku yang mudah dipahami dan tidak mengintimidasi.</li>
+              <li>Menyajikan sampul, judul, penulis, deskripsi, kategori, dan alasan rekomendasi dalam satu tempat.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="audience-heading">
+          <div class="section-head">
+            <div>
+              <h2 id="audience-heading">Untuk siapa BookNest dibuat?</h2>
+              <p>Kalau kamu termasuk salah satu kelompok ini, BookNest dirancang untukmu.</p>
+            </div>
+          </div>
+          <ul class="audience-grid">
+            <li><strong>Pelajar dan mahasiswa</strong>Yang butuh bacaan pendukung belajar atau bahan diskusi.</li>
+            <li><strong>Pembaca pemula</strong>Yang ingin mulai membangun kebiasaan membaca dari buku yang tidak terlalu berat.</li>
+            <li><strong>Pembelajar berpikir kritis</strong>Yang ingin lebih jeli menilai informasi, argumen, dan data.</li>
+            <li><strong>Penggemar cerita</strong>Penyuka novel, misteri, fantasi, fiksi ilmiah, komik, dan manga.</li>
+            <li><strong>Pencari bacaan baru</strong>Yang ingin menemukan buku sesuai preferensi tanpa membaca puluhan ulasan.</li>
+          </ul>
+        </section>
+
+        <section id="metode" class="section" aria-labelledby="method-heading">
+          <div class="section-head">
+            <div>
+              <h2 id="method-heading">Cara kami memilih buku</h2>
+              <p>Setiap buku kurasi melewati lima langkah yang sama.</p>
+            </div>
+          </div>
+          <ol class="steps">
+            <li>
+              <div>
+                <h3>Kumpulkan kandidat per kategori</h3>
+                <p>Kandidat dipilih dari buku yang sering dijadikan bacaan pengantar, banyak dibicarakan, atau mewakili genre tertentu.</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <h3>Periksa data bibliografis</h3>
+                <p>Judul, penulis, dan ISBN dicocokkan dengan Google Books dan Open Library agar sampul serta data edisi bisa dimuat.</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <h3>Tetapkan tingkat pembaca</h3>
+                <p>Penilaian berdasarkan gaya bahasa, panjang bab, kerumitan alur, dan beratnya tema, bukan berdasarkan popularitas.</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <h3>Tulis ringkasan dan alasan sendiri</h3>
+                <p>Ringkasan pendek ditulis dengan kata-kata sendiri tanpa membocorkan twist, lalu dilengkapi alasan yang spesifik untuk buku itu.</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <h3>Tambahkan catatan bila perlu</h3>
+                <p>Buku dengan kekerasan, tema dewasa, data yang sudah lama, atau klaim yang diperdebatkan diberi catatan singkat.</p>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <section class="section" aria-labelledby="category-heading">
+          <div class="section-head">
+            <div>
+              <h2 id="category-heading">Kategori rekomendasi</h2>
+              <p>Klik nama kategori untuk langsung melihat bukunya di Explore Books.</p>
+            </div>
+          </div>
+          <ul class="category-list">
+            <li>
+              <span class="swatch swatch--critical-thinking" aria-hidden="true"></span>
+              <div>
+                <h3><a href="explore.html?category=critical-thinking">Critical Thinking</a></h3>
+                <p>Buku yang melatih mengenali bias, memeriksa klaim, dan menilai argumen. Buku-buku ini mengajarkan cara mengevaluasi informasi, bukan menjamin kamu selalu benar.</p>
+                <p class="source-note"><span data-count-category="critical-thinking">0</span> buku</p>
+              </div>
+            </li>
+            <li>
+              <span class="swatch swatch--fiction" aria-hidden="true"></span>
+              <div>
+                <h3><a href="explore.html?category=fiction">Fiction &amp; Novels</a></h3>
+                <p>Kombinasi fantasi, petualangan, misteri, distopia, fiksi ilmiah, dan fiksi reflektif, termasuk satu novel Indonesia.</p>
+                <p class="source-note"><span data-count-category="fiction">0</span> buku</p>
+              </div>
+            </li>
+            <li>
+              <span class="swatch swatch--comics" aria-hidden="true"></span>
+              <div>
+                <h3><a href="explore.html?category=comics">Comics &amp; Manga</a></h3>
+                <p>Gambar membantu pembaca mengikuti emosi dan suasana cerita. Kategori ini memuat manga ringan untuk pemula hingga novel grafis bertema berat.</p>
+                <p class="source-note"><span data-count-category="comics">0</span> buku</p>
+              </div>
+            </li>
+            <li>
+              <span class="swatch swatch--knowledge" aria-hidden="true"></span>
+              <div>
+                <h3><a href="explore.html?category=knowledge">Knowledge for Beginners</a></h3>
+                <p>Nonfiksi tentang sains, sejarah, keuangan, kebiasaan, dan keterampilan sosial. Untuk klaim yang diperdebatkan, bandingkan dengan sumber lain.</p>
+                <p class="source-note"><span data-count-category="knowledge">0</span> buku</p>
+              </div>
+            </li>
+          </ul>
+        </section>
+
+        <section class="section" aria-labelledby="level-heading">
+          <div class="section-head">
+            <div>
+              <h2 id="level-heading">Arti label tingkat pembaca</h2>
+              <p>Jumlah batang pada label menunjukkan tingkat kesulitan, jadi maknanya tidak bergantung pada warna.</p>
+            </div>
+          </div>
+          <ul class="level-list">
+            <li>
+              <span class="tag tag--level"><svg class="level-icon" viewBox="0 0 14 12" aria-hidden="true" focusable="false"><rect x="0" y="8" width="3.5" height="4" rx="1" class="is-on"/><rect x="5" y="4" width="3.5" height="8" rx="1" class="is-off"/><rect x="10" y="0" width="3.5" height="12" rx="1" class="is-off"/></svg> Beginner Friendly</span>
+              <p>Bahasa lancar, bab pendek, atau cerita yang mudah diikuti. <span class="muted">(<span data-count-level="beginner">0</span> buku)</span></p>
+            </li>
+            <li>
+              <span class="tag tag--level"><svg class="level-icon" viewBox="0 0 14 12" aria-hidden="true" focusable="false"><rect x="0" y="8" width="3.5" height="4" rx="1" class="is-on"/><rect x="5" y="4" width="3.5" height="8" rx="1" class="is-on"/><rect x="10" y="0" width="3.5" height="12" rx="1" class="is-off"/></svg> Intermediate</span>
+              <p>Butuh sedikit konsentrasi: tema lebih berat atau gaya bahasa lebih padat. <span class="muted">(<span data-count-level="intermediate">0</span> buku)</span></p>
+            </li>
+            <li>
+              <span class="tag tag--level"><svg class="level-icon" viewBox="0 0 14 12" aria-hidden="true" focusable="false"><rect x="0" y="8" width="3.5" height="4" rx="1" class="is-on"/><rect x="5" y="4" width="3.5" height="8" rx="1" class="is-on"/><rect x="10" y="0" width="3.5" height="12" rx="1" class="is-on"/></svg> Advanced</span>
+              <p>Struktur kompleks, tema dewasa, atau pembahasan berbasis riset. <span class="muted">(<span data-count-level="advanced">0</span> buku)</span></p>
+            </li>
+          </ul>
+        </section>
+
+        <section class="section" aria-labelledby="why-heading">
+          <div class="section-head">
+            <div>
+              <h2 id="why-heading">Mengapa BookNest?</h2>
+              <p>Tiga keputusan desain yang dibuat untuk memudahkanmu.</p>
+            </div>
+          </div>
+          <ul class="reason-grid">
+            <li>
+              <h3>Pencarian dan filter memangkas waktu memilih</h3>
+              <p>Di Explore Books, kamu bisa menyaring berdasarkan kategori dan tingkat pembaca sekaligus. Daftar langsung menyempit tanpa memuat ulang halaman, jadi kamu tidak perlu membaca seluruh katalog.</p>
+            </li>
+            <li>
+              <h3>Alasan dan label membantu memutuskan</h3>
+              <p>Bagian “Kenapa buku ini?” dan label tingkat pembaca menjawab dua pertanyaan pertama pembaca: apa manfaatnya untukku, dan apakah aku sanggup membacanya.</p>
+            </li>
+            <li>
+              <h3>Tampilan yang sama di setiap halaman</h3>
+              <p>Header, tombol, kartu buku, dan warna kategori konsisten di ketiga halaman, sehingga kamu tidak perlu mempelajari ulang cara memakai website saat berpindah halaman.</p>
+            </li>
+          </ul>
+        </section>
+
+        <section id="sumber-data" class="section" aria-labelledby="data-heading">
+          <div class="section-head">
+            <div>
+              <h2 id="data-heading">Sumber data dan API</h2>
+              <p>BookNest berjalan sepenuhnya di browser dan mengambil data buku dari dua REST API publik.</p>
+            </div>
+          </div>
+          <div class="source-grid">
+            <div class="source-card">
+              <h3>Google Books API</h3>
+              <p>Dipakai untuk mengambil deskripsi, penerbit, tanggal edisi, jumlah halaman, dan tautan ke halaman buku, serta untuk pencarian online di Explore Books.</p>
+              <p class="source-note">Dipakai tanpa API key untuk data publik, sehingga bergantung pada kuota bersama. Jika kuota habis, BookNest tetap memakai data kurasi lokal.</p>
+            </div>
+            <div class="source-card">
+              <h3>Open Library</h3>
+              <p>Covers API menyediakan sampul berdasarkan ISBN. Search API menjadi cadangan pencarian ketika Google Books tidak dapat dihubungi atau tidak menemukan hasil.</p>
+              <p class="source-note">Tidak semua buku punya sampul. Jika tidak ada, BookNest menampilkan sampul pengganti dengan judul dan penulis.</p>
+            </div>
+          </div>
+          <p class="source-note source-note--spaced">
+            Ringkasan, alasan rekomendasi, kategori, dan tingkat pembaca adalah tulisan editor BookNest. Data dari API selalu diberi label sumbernya.
+          </p>
+        </section>
+
+        <section class="disclaimer" aria-labelledby="disclaimer-heading">
+          <h2 id="disclaimer-heading">Rekomendasi adalah kurasi, bukan peringkat</h2>
+          <p>
+            Daftar BookNest disusun berdasarkan penilaian editorial untuk membantu pembaca pemula. Daftar ini bukan peringkat
+            universal, bukan daftar buku terlaris, dan tidak mewakili selera semua orang. Buku yang tidak ada di sini belum tentu
+            kurang bagus. Gunakan BookNest sebagai titik awal, lalu ikuti rasa penasaranmu.
+          </p>
+          <p class="section-cta"><a class="btn btn--primary" href="explore.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 6.5C10.3 5 7.8 4.5 4 4.5v13c3.8 0 6.3.5 8 2 1.7-1.5 4.2-2 8-2v-13c-3.8 0-6.3.5-8 2Z"/><path d="M12 6.5v13"/></svg> Explore Books</a></p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container site-footer__inner">
+        <div>
+          <a class="logo" href="index.html">
+            <svg class="logo__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M16 9.5c-2-1.6-4.8-2.1-8.5-2.1v12c3.7 0 6.5.5 8.5 2.1 2-1.6 4.8-2.1 8.5-2.1v-12c-3.7 0-6.5.5-8.5 2.1Z"/><path d="M16 9.5v12"/><path class="logo__nest" d="M5 24.5c3.5 3 18.5 3 22 0"/></svg>
+            <span>BookNest</span>
+          </a>
+          <p class="site-footer__tagline">Rekomendasi buku hasil kurasi editorial untuk pelajar, mahasiswa, dan pembaca pemula.</p>
+        </div>
+
+        <nav aria-label="Navigasi footer">
+          <h2 class="footer-heading">Halaman</h2>
+          <ul class="footer-list">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="explore.html">Explore Books</a></li>
+            <li><a href="explore.html#saved">Rak Simpanan</a></li>
+          </ul>
+        </nav>
+
+        <div>
+          <h2 class="footer-heading">Sumber data</h2>
+          <ul class="footer-list">
+            <li><a href="https://books.google.com/" rel="noopener">Google Books</a>: metadata &amp; deskripsi</li>
+            <li><a href="https://openlibrary.org/" rel="noopener">Open Library</a>: sampul &amp; pencarian cadangan</li>
+            <li><a href="about.html#sumber-data">Cara BookNest memakai API</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="container site-footer__bottom">
+        <p>&copy; <span data-current-year>2026</span> BookNest, proyek pembelajaran web design. Sampul dan deskripsi buku adalah milik penerbit dan pemegang hak masing-masing. Rekomendasi bersifat kurasi editorial, bukan peringkat universal.</p>
+      </div>
+    </footer>
+
+    <button class="btn btn--primary back-to-top" type="button" data-back-to-top hidden>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>
+      <span class="back-to-top__label">Kembali ke atas</span>
+    </button>
+  </body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BookNest | Rekomendasi buku untuk mulai membaca</title>
+    <meta name="description" content="BookNest merekomendasikan buku berpikir kritis, novel, komik & manga, dan pengetahuan umum, lengkap dengan alasan pemilihan dan tingkat pembaca.">
+    <meta name="theme-color" content="#1e4a3f">
+    <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&amp;family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&amp;display=swap">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <script src="data/books.js" defer></script>
+    <script src="js/icons.js" defer></script>
+    <script src="js/storage.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <script src="js/books.js" defer></script>
+    <script src="js/main.js" defer></script>
+    <script src="js/home.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Langsung ke konten utama</a>
+
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="logo" href="index.html">
+          <svg class="logo__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M16 9.5c-2-1.6-4.8-2.1-8.5-2.1v12c3.7 0 6.5.5 8.5 2.1 2-1.6 4.8-2.1 8.5-2.1v-12c-3.7 0-6.5.5-8.5 2.1Z"/><path d="M16 9.5v12"/><path class="logo__nest" d="M5 24.5c3.5 3 18.5 3 22 0"/></svg>
+          <span>BookNest</span>
+        </a>
+
+        <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>
+          Menu
+        </button>
+
+        <nav id="site-nav" class="site-nav" aria-label="Navigasi utama">
+          <ul class="site-nav__list">
+            <li><a href="index.html" aria-current="page">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="explore.html">Explore Books</a></li>
+          </ul>
+          <a class="saved-link" href="explore.html#saved">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4v-17Z"/></svg>
+            Tersimpan
+            <span class="saved-link__count" data-saved-count>0</span>
+            <span class="sr-only">buku</span>
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="container hero__inner">
+          <div class="hero__text">
+            <h1 id="hero-title" class="hero__title">Temukan buku berikutnya tanpa tersesat di rak.</h1>
+            <p class="hero__lead">
+              BookNest memilihkan <span data-count-category="all">25</span> buku, dari novel misteri dan manga sampai buku
+              berpikir kritis. Setiap buku disertai alasan kenapa layak dibaca dan label seberapa ramah untuk pemula.
+            </p>
+            <div class="hero__actions">
+              <a class="btn btn--primary btn--large" href="explore.html">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 6.5C10.3 5 7.8 4.5 4 4.5v13c3.8 0 6.3.5 8 2 1.7-1.5 4.2-2 8-2v-13c-3.8 0-6.3.5-8 2Z"/><path d="M12 6.5v13"/></svg>
+                Explore Books
+              </a>
+              <a class="btn btn--quiet btn--large" href="about.html#metode">Cara kami memilih</a>
+            </div>
+          </div>
+          <div class="hero__visual" aria-hidden="true">
+            <div id="hero-shelf" class="shelf"></div>
+            <div class="shelf__plank"></div>
+          </div>
+        </div>
+        <noscript>
+          <p class="notice notice--error">BookNest membutuhkan JavaScript untuk menampilkan katalog buku. Aktifkan JavaScript di browser, lalu muat ulang halaman.</p>
+        </noscript>
+      </section>
+
+      <section class="section" aria-labelledby="botd-heading">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <h2 id="botd-heading">Book of the Day</h2>
+              <p>Satu buku dari koleksi kurasi yang berganti setiap hari.</p>
+            </div>
+          </div>
+          <div id="book-of-day" class="botd botd--loading"></div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="picks-heading">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <h2 id="picks-heading">Editor's Picks</h2>
+              <p>Enam buku untuk mulai menjelajah, dipilih agar mewakili setiap kategori.</p>
+            </div>
+            <a class="btn btn--quiet" href="explore.html">Lihat semua buku</a>
+          </div>
+          <div id="editors-picks" class="book-grid"></div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="categories-heading">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <h2 id="categories-heading">Pilih dari rak kategori</h2>
+              <p>Empat kategori saja, supaya kamu tidak bingung harus mulai dari mana.</p>
+            </div>
+          </div>
+          <ul class="spines">
+          <li>
+            <a class="spine spine--critical-thinking" href="explore.html?category=critical-thinking">
+              <span class="spine__title">Critical Thinking</span>
+              <span class="spine__desc">Mengenali bias, menilai argumen, dan memeriksa klaim.</span>
+              <span class="spine__count"><span data-count-category="critical-thinking">0</span> buku</span>
+            </a>
+          </li>
+          <li>
+            <a class="spine spine--fiction" href="explore.html?category=fiction">
+              <span class="spine__title">Fiction &amp; Novels</span>
+              <span class="spine__desc">Fantasi, misteri, distopia, dan fiksi ilmiah.</span>
+              <span class="spine__count"><span data-count-category="fiction">0</span> buku</span>
+            </a>
+          </li>
+          <li>
+            <a class="spine spine--comics" href="explore.html?category=comics">
+              <span class="spine__title">Comics &amp; Manga</span>
+              <span class="spine__desc">Cerita visual, dari petualangan ringan sampai memoar grafis.</span>
+              <span class="spine__count"><span data-count-category="comics">0</span> buku</span>
+            </a>
+          </li>
+          <li>
+            <a class="spine spine--knowledge" href="explore.html?category=knowledge">
+              <span class="spine__title">Knowledge for Beginners</span>
+              <span class="spine__desc">Sains, sejarah, uang, dan kebiasaan untuk pemula.</span>
+              <span class="spine__count"><span data-count-category="knowledge">0</span> buku</span>
+            </a>
+          </li>
+          </ul>
+          <div class="spines-plank" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="starter-heading">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <h2 id="starter-heading">Mulai Membaca</h2>
+              <p>Belum terbiasa membaca? Empat buku berlabel <strong>Beginner Friendly</strong> ini punya bab pendek atau cerita yang mudah diikuti.</p>
+            </div>
+          </div>
+          <div class="starter">
+            <div class="starter__tips">
+              <h3 id="tips-heading">Tips memulai</h3>
+              <ul class="tips-list">
+                <li>Pilih buku yang topiknya sudah kamu sukai, misalnya dari film atau hobi.</li>
+                <li>Targetkan 10–15 menit sehari, bukan satu buku per minggu.</li>
+                <li>Tidak cocok setelah beberapa bab? Berhenti saja dan coba genre lain.</li>
+              </ul>
+            </div>
+            <div id="starter-books" class="book-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="why-heading">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <h2 id="why-heading">Kenapa mencoba BookNest?</h2>
+            </div>
+          </div>
+          <ul class="why-grid">
+            <li class="why-item">
+              <h3>Ada alasannya</h3>
+              <p>Setiap buku punya bagian “Kenapa buku ini?” yang ditulis khusus, jadi kamu tahu manfaatnya sebelum mulai membaca.</p>
+            </li>
+            <li class="why-item">
+              <h3>Jelas tingkat kesulitannya</h3>
+              <p>Label Beginner, Intermediate, dan Advanced membantu memilih buku yang sesuai dengan pengalaman membacamu.</p>
+            </li>
+            <li class="why-item">
+              <h3>Jujur soal sumber</h3>
+              <p>Data edisi dan sampul diambil dari Google Books dan Open Library. Penilaian editor ditandai terpisah dari data API.</p>
+            </li>
+          </ul>
+          <p class="section-cta"><a href="about.html">Baca selengkapnya tentang BookNest</a></p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container site-footer__inner">
+        <div>
+          <a class="logo" href="index.html">
+            <svg class="logo__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M16 9.5c-2-1.6-4.8-2.1-8.5-2.1v12c3.7 0 6.5.5 8.5 2.1 2-1.6 4.8-2.1 8.5-2.1v-12c-3.7 0-6.5.5-8.5 2.1Z"/><path d="M16 9.5v12"/><path class="logo__nest" d="M5 24.5c3.5 3 18.5 3 22 0"/></svg>
+            <span>BookNest</span>
+          </a>
+          <p class="site-footer__tagline">Rekomendasi buku hasil kurasi editorial untuk pelajar, mahasiswa, dan pembaca pemula.</p>
+        </div>
+
+        <nav aria-label="Navigasi footer">
+          <h2 class="footer-heading">Halaman</h2>
+          <ul class="footer-list">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="explore.html">Explore Books</a></li>
+            <li><a href="explore.html#saved">Rak Simpanan</a></li>
+          </ul>
+        </nav>
+
+        <div>
+          <h2 class="footer-heading">Sumber data</h2>
+          <ul class="footer-list">
+            <li><a href="https://books.google.com/" rel="noopener">Google Books</a>: metadata &amp; deskripsi</li>
+            <li><a href="https://openlibrary.org/" rel="noopener">Open Library</a>: sampul &amp; pencarian cadangan</li>
+            <li><a href="about.html#sumber-data">Cara BookNest memakai API</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="container site-footer__bottom">
+        <p>&copy; <span data-current-year>2026</span> BookNest, proyek pembelajaran web design. Sampul dan deskripsi buku adalah milik penerbit dan pemegang hak masing-masing. Rekomendasi bersifat kurasi editorial, bukan peringkat universal.</p>
+      </div>
+    </footer>
+
+    <button class="btn btn--primary back-to-top" type="button" data-back-to-top hidden>
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>
+      <span class="back-to-top__label">Kembali ke atas</span>
+    </button>
+  </body>
+</html>

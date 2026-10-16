@@ -1,0 +1,224 @@
+/*
+ * BookNest — penyesuaian responsif
+ * style.css sudah ditulis untuk layar kecil (mobile-first).
+ * File ini hanya menambahkan aturan untuk layar yang lebih lebar.
+ *
+ * Breakpoint:
+ *  40rem  (640px)  smartphone besar / tablet kecil
+ *  48rem  (768px)  tablet
+ *  64rem  (1024px) laptop
+ *  80rem  (1280px) desktop
+ */
+
+/* ---------- ≤ 30rem: smartphone kecil ---------- */
+@media (max-width: 30rem) {
+  .book-card,
+  .skeleton-card {
+    grid-template-columns: 5.25rem 1fr;
+    gap: var(--spacing-3);
+  }
+
+  .botd {
+    grid-template-columns: 5.5rem 1fr;
+    gap: var(--spacing-4);
+    padding: var(--spacing-4);
+  }
+
+  .botd__title {
+    font-size: var(--text-xl);
+  }
+
+  .detail__header {
+    grid-template-columns: 5.5rem 1fr;
+  }
+
+  .search__field {
+    flex-wrap: wrap;
+  }
+
+  .search__field .btn {
+    width: 100%;
+  }
+
+  /* Chip lebih ringkas agar dua chip muat dalam satu baris */
+  .chip__label {
+    padding: 0 var(--spacing-3);
+    font-size: 0.9375rem;
+  }
+
+  .filters {
+    padding: var(--spacing-4);
+    gap: var(--spacing-4);
+  }
+}
+
+/* ---------- ≥ 40rem ---------- */
+@media (min-width: 40rem) {
+  .container {
+    width: min(100% - 2 * var(--spacing-6), var(--container));
+  }
+
+  .audience-grid,
+  .category-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .spines {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .filter-row {
+    grid-template-columns: 1fr 1fr auto;
+    gap: var(--spacing-4);
+  }
+
+  .filter-row > .btn {
+    grid-column: auto;
+  }
+
+  .saved-item {
+    grid-template-columns: 2.75rem 1fr auto;
+  }
+
+  .saved-item__actions {
+    grid-column: auto;
+  }
+
+  .related-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .related-item {
+    grid-template-columns: 1fr;
+    align-content: start;
+  }
+
+  .related-item .cover {
+    width: 4.5rem;
+  }
+
+  .modal__content {
+    padding: var(--spacing-6);
+  }
+}
+
+/* ---------- ≥ 48rem: tablet ---------- */
+@media (min-width: 48rem) {
+  /* Navigasi tampil penuh; tombol menu disembunyikan */
+  .nav-toggle {
+    display: none;
+  }
+
+  .site-nav,
+  .site-nav.is-open {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+    position: static;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    background: none;
+  }
+
+  .site-nav__list {
+    display: flex;
+    gap: var(--spacing-1);
+  }
+
+  .saved-link {
+    margin-top: 0;
+  }
+
+  .book-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .book-card,
+  .skeleton-card {
+    grid-template-columns: 7rem 1fr;
+  }
+
+  .hero__inner {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+
+  .botd {
+    grid-template-columns: 11rem 1fr;
+    gap: var(--spacing-6);
+    padding: var(--spacing-6);
+  }
+
+  .detail__header {
+    grid-template-columns: 11rem 1fr;
+    gap: var(--spacing-6);
+  }
+
+  .detail__title {
+    font-size: var(--text-2xl);
+  }
+
+  .site-footer__inner {
+    grid-template-columns: 1.4fr 1fr 1fr;
+  }
+
+  .why-grid,
+  .reason-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .source-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .level-list {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-5);
+  }
+}
+
+/* ---------- ≥ 64rem: laptop ---------- */
+@media (min-width: 64rem) {
+  .hero {
+    padding-block: var(--spacing-8) var(--spacing-7);
+  }
+
+  /* Kategori berdiri seperti buku di rak, tinggi berbeda-beda */
+  .spines {
+    grid-template-columns: repeat(4, 1fr);
+    align-items: end;
+    gap: var(--spacing-3);
+  }
+
+  .spines li:nth-child(1) .spine { min-height: 17rem; }
+  .spines li:nth-child(2) .spine { min-height: 19.5rem; }
+  .spines li:nth-child(3) .spine { min-height: 16rem; }
+  .spines li:nth-child(4) .spine { min-height: 18.25rem; }
+
+  .spines-plank {
+    display: block;
+    height: 0.75rem;
+    margin-top: 0;
+    border-radius: 2px;
+    background: var(--color-text);
+    box-shadow: 0 10px 18px -10px rgb(27 42 51 / 0.6);
+  }
+
+  .starter {
+    grid-template-columns: 17rem 1fr;
+    gap: var(--spacing-7);
+  }
+
+  .about-intro {
+    grid-template-columns: 1.5fr 1fr;
+    gap: var(--spacing-8);
+  }
+}
+
+/* ---------- ≥ 80rem: desktop lebar ---------- */
+@media (min-width: 80rem) {
+  .book-card {
+    grid-template-columns: 7.5rem 1fr;
+    padding: var(--spacing-5);
+  }
+}
